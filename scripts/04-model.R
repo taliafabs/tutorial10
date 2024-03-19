@@ -13,25 +13,24 @@ library(tidyverse)
 library(rstanarm)
 
 #### Read data ####
-analysis_data <- read_csv("data/analysis_data/analysis_data.csv")
+poll_data <- read_csv("data/analysis_data/cleaned_poll_data.csv")
 
 ### Model data ####
-first_model <-
+vote_model <-
   stan_glm(
-    formula = flying_time ~ length + width,
-    data = analysis_data,
-    family = gaussian(),
+    formula = vote_biden ~ age + gender + race,
+    data = poll_data,
+    family = binomial(link="logit"),
     prior = normal(location = 0, scale = 2.5, autoscale = TRUE),
     prior_intercept = normal(location = 0, scale = 2.5, autoscale = TRUE),
-    prior_aux = exponential(rate = 1, autoscale = TRUE),
     seed = 853
   )
 
 
 #### Save model ####
 saveRDS(
-  first_model,
-  file = "models/first_model.rds"
+  vote_model,
+  file = "models/vote_model.rds"
 )
 
 

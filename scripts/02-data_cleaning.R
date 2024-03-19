@@ -11,34 +11,34 @@
 library(tidyverse)
 
 #### Clean data ####
-raw_data <- read_csv("inputs/data/plane_data.csv")
+raw_data <- read_csv("/Users/talia/sta302tutorial10/data/raw_data/americaspoliticalpulsew52024.csv")
 
-cleaned_data <-
-  raw_data |>
-  janitor::clean_names() |>
-  select(wing_width_mm, wing_length_mm, flying_time_sec_first_timer) |>
-  filter(wing_width_mm != "caw") |>
-  mutate(
-    flying_time_sec_first_timer = if_else(flying_time_sec_first_timer == "1,35",
-                                   "1.35",
-                                   flying_time_sec_first_timer)
-  ) |>
-  mutate(wing_width_mm = if_else(wing_width_mm == "490",
-                                 "49",
-                                 wing_width_mm)) |>
-  mutate(wing_width_mm = if_else(wing_width_mm == "6",
-                                 "60",
-                                 wing_width_mm)) |>
-  mutate(
-    wing_width_mm = as.numeric(wing_width_mm),
-    wing_length_mm = as.numeric(wing_length_mm),
-    flying_time_sec_first_timer = as.numeric(flying_time_sec_first_timer)
-  ) |>
-  rename(flying_time = flying_time_sec_first_timer,
-         width = wing_width_mm,
-         length = wing_length_mm
-         ) |> 
-  tidyr::drop_na()
+# Add labels
+raw_data <- labelled::to_factor(raw_data)
 
-#### Save data ####
-write_csv(cleaned_data, "outputs/data/analysis_data.csv")
+# add an age column
+raw_data <- raw_data |>
+  mutate(age = 2024 - birthyr)
+
+
+poll_analysis_data <- raw_data |>
+  select(
+    pid7,
+    presvote16post,
+    presvote20post,
+    age,
+    gender,
+    race,
+    educ,
+    inputstate
+  )
+
+
+poll_analysis_data <- poll_analysis_data |>
+  mutate(vote_biden = ifelse((pid7 == "Not very strong Democrat" |
+                                pid7 == "Lean Democrat" |
+                                pid7 == "Strong Democrat") & presvote16post != "Donald Trump" & presvote20post != "Donald Trump", 
+                             1, 
+                             0))
+
+write_csv(poll_analysis_data, "data/analysis_data/cleaned_poll_data.csv")
